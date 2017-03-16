@@ -1,102 +1,7 @@
-;   Typical usage example:
-;   .../Assembler-MIPT-hometask$ mkdir ./executables<Enter>
-;   .../Assembler-MIPT-hometask$ make PrintBinHexOct<Enter>
-;   .../Assembler-MIPT-hometask$ cd ./executables<Enter>
-;   .../Assembler-MIPT-hometask/executables$ ./PrintBinHexOct<Enter>
-;   2<C-d>            //Firstly you have to enter mode: 0 - bin, 1 - hex, 2 - dec
-;   1<C-d>            //Secondly you have to enter number to print: '1' is 0x31 and 0d49
-;   49
-;   .../Assembler-MIPT-hometask/executables$
-
-;define constant
         NUMSTRINGLEN equ 64
-;macros
-%macro exit 1
-            mov rdi, %1
-            call Exit
-%endmacro
-
-%macro putchar 1
-            mov     [PUTCHAR_CHAR], byte %1 ; NUM <- %1
-            mov     rdi, 1                  ; file descriptor  <- stdout           
-            mov     rdx, 1                  ; buffer size      <- 1                 
-            mov     rsi, PUTCHAR_CHAR       ; buffer to print  <- NUM
-            mov     rax, 1                  ; syscall          <- sys_write    
-            syscall             
-%endmacro
-
-;data
-section .bss 
-            PUTCHAR_CHAR resb 1
-            NUM       resd 2
-            MODE      resb 1
-            NUMSTRING resb NUMSTRINGLEN + 1 ; To store 64-bit value plus null-terminator
-
-
+section .bss
+        NUMSTRING resb NUMSTRINGLEN + 1 ; To store 64-bit value plus null-terminator
 section .text
-;code
-;=========================================================================
-;                               MAIN                                     ;
-;                       MODE : 0 - bin, 1 - hex, 2 - dec                 ;
-;=========================================================================
-    global _start                                                           
-                                                                            
-_start:                                                                     
-    ;Read 'MODE' - how to represent value(bin, hex, oct)                    
-            mov     rax, 0    ; syscall          <- sys_read                
-            mov     rdi, 0    ; file descriptor  <- stdin                   
-            mov     rsi, MODE ; buffer           <- mode                    
-            mov     rdx, 1    ; buffer size      <- 1                       
-            syscall                                                         
-                                                                            
-    putchar 0ah; putchar('\n');
-                                                                            
-    ;Read 'NUM' - value to print                                            
-            mov     rax, 0    ; syscall          <- sys_read                
-            mov     rdi, 0    ; file descriptor  <- stdin                   
-            mov     rsi, NUM  ; buffer      <- num                          
-            mov     rdx, 8    ; buffer size <- 2 dword size                 
-            syscall                                                         
-
-    putchar 0ah; putchar('\n');
-                                                                            
-    ;Put read value in string according to the 'MODE'                               
-            mov rax, [NUM]       ; rdi = NUM                    
-            mov rsi, [MODE]      ; rsi = MODE
-
-                                 ; switch (MODE)              (rsi = &MODE) 
-
-            cmp rsi, '0'         ; case '0':                  (*rsi == '0') 
-            jne HexCase          ;                                          
-                    call SprintBin       ;   SprintBin(NUM); break;                
-            jmp SwitchEnd
-HexCase:                         ;                                          
-            cmp rsi, '1'         ; case '1':                  (*rsi == '0') 
-            jne DecCase          ;                                          
-                    call SprintHex       ;   SprintHex(NUM); break;                 
-            jmp SwitchEnd
-DecCase:                         ;                                          
-            cmp rsi, '2'         ; case '2':                  (*rsi == '0') 
-            jne DefaultCase      ;                                          
-                    call SprintDec       ;   SprintOct(NUM); break;                 
-            jmp SwitchEnd
-DefaultCase:                     
-            exit 1 ; macro
-SwitchEnd:
-            
-    ;Print value translated to bin/hex/dec
-            mov     rdi, 1    ; file descriptor  <- stdout           
-            mov     rdx, rbx  ; buffer size      <- rbx              
-            mov     rsi, rax  ; buffer to print  <- rax             
-            mov     rax, 1    ; syscall          <- sys_write    
-            syscall             
-
-    putchar 0ah; putchar('\n');
-
-            call Exit
-;=========================================================================
-
-
 ;=========================================================================;
 ;                 ┌───────────────────────────────────────────┐           ;
 ;                 │ Sprint(Bin/Dec/Hex) - puts number's       │           ;
@@ -153,18 +58,18 @@ GetCharHex:
                     cmovge rdi, rdx            ; rdi = (rdi % 16 >= 10) ? rdx : rdi
             jmp GetCharSwitchEnd
 GetCharDefault:
-            exit 1
+            call ErrorExit
 GetCharSwitchEnd:
 ;-----------GetCharSwitchEnd-------------------------------------
 
-            mov [NUMSTRING + NUMSTRINGLEN + rbx], dil ; NUMSTRING[64 - currentLen] = al
+            mov [NUMSTRING + NUMSTRINGLEN + rbx], dil ; NUMSTRING[64 - currentLen] = dil
 
             dec rbx          ; rbx -=  1 - dec counter
 
 
 CheckLoopConditionSprint: 
             test rax, rax    ; if (!rdi)
-            jne SprintLoop      ;    break;
+            jne SprintLoop   ;    break;
 
                                        ; '+ 1' because there was one extra 'dec rbx'
             lea rax, [NUMSTRING + NUMSTRINGLEN + rbx + 1] ; put string pointer in rax
@@ -172,6 +77,3 @@ CheckLoopConditionSprint:
 
             ret
 ;=========================================================================
-Exit:
-            mov    rax, 3Ch   ; syscall <- exit                             
-            syscall                                                         

@@ -1,32 +1,4 @@
-; Don't forget to use
-; $ echo $?
-; To check the exit status of the program
-%macro exit 1
-            mov rdi, %1
-            call Exit
-%endmacro
-
-;data
-section .data
-NUM:        db "123456", 0
-
 section .text
-;code
-;=========================================================================
-;                               MAIN                                     ;
-;                       MODE : 0 - bin, 1 - hex, 2 - dec                 ;
-;=========================================================================
-    global _start                                                           
-                                                                            
-_start:                                                                     
-                                                                            
-            mov rdi, NUM
-            call SscanDec
-
-            call OkExit
-;=========================================================================
-
-
 ;=========================================================================;
 ;                 ┌───────────────────────────────────────────────┐       ;
 ;                 │ Scan(Bin/Dec/Hex) - translates string in      │       ;
@@ -34,14 +6,14 @@ _start:
 ;                 ├───────────────────────────────────────────────┤       ;
 ;                 │ Entry - RDI - string pointer                  │       ;
 ;                 │ Exit  - RAX - numeric value                   │       ;
-;                 │ Destr - RCX, RBX, RSI, R8                     │       ;
+;                 │ Destr - RCX, RBX, RSI                         │       ;
 ;                 └───────────────────────────────────────────────┘       ;
 ;=========================================================================;
 ;------------set numeric base--------------------                   
 SscanBin:
             mov rax, 2
-            jmp SscanStart
-SscanDec: 
+            jmp SscanStart 
+SscanDec:
             mov rax, 0ah
             jmp SscanStart
 SscanHex:
@@ -55,6 +27,8 @@ SscanStart:
                                ; stores numeric base
 
             xor rbx, rbx       ; Init char counter
+            xor rsi, rsi       ; Init char var
+            xor rcx, rcx
 
             jmp CheckSscanLoopCondition
 
@@ -116,16 +90,4 @@ CheckSscanLoopCondition:
             add rsp, 8                
             pop rbp
             ret
-;=========================================================================
-
-;==========================EXIT ROUTINES==================================
-ErrorExit:
-            mov    rdi, 1     ; return value <- 1
-            jmp __exit
-OkExit:
-            mov    rdi, 0     ; return value <- 0
-            jmp __exit
-__exit:
-            mov    rax, 3Ch   ; syscall <- exit                             
-            syscall                                                         
 ;=========================================================================

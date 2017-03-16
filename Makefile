@@ -1,14 +1,25 @@
 ASM=nasm
-FORMAT=-felf64
+
 SRCPATH=./src/
+INCLUDEDIR=$(SRCPATH)
+
+COMPOPTIONS=-felf64 -i $(INCLUDEDIR)
 EXEPATH=./executables/
 
-all: SumUntilZero PrintBinHexOct
+all: ScanPrint #SumUntilZero 
 
 SumUntilZero: $(SRCPATH)SumUntilZero.asm
-	$(ASM) $(FORMAT) $(SRCPATH)$@.asm -o $(EXEPATH)$@.o
+	$(ASM) $(COMPOPTIONS) $(SRCPATH)$@.asm -o $(EXEPATH)$@.o
 	ld $(EXEPATH)$@.o -o $(EXEPATH)$@
 
-PrintBinHexOct: ./src/PrintBinHexOct.asm
-	$(ASM) $(FORMAT) $(SRCPATH)$@.asm -o $(EXEPATH)$@.o
+#PrintBinHexOct: ./src/PrintBinHexOct.asm
+#	$(ASM) $(COMPOPTIONS) $(SRCPATH)$@.asm -o $(EXEPATH)$@.o
+#	ld $(EXEPATH)$@.o -o $(EXEPATH)$@
+#
+#ScanBinHexOct:  ./src/ScanBinHexOct.asm
+#	$(ASM) $(COMPOPTIONS) $(SRCPATH)$@.asm -o $(EXEPATH)$@.o
+#	ld $(EXEPATH)$@.o -o $(EXEPATH)$@
+
+ScanPrint: ./src/ScanPrint.asm ./src/ScanBinHexOct.asm ./src/PrintBinHexOct.asm
+	$(ASM) $(COMPOPTIONS) $(SRCPATH)$@.asm -o $(EXEPATH)$@.o
 	ld $(EXEPATH)$@.o -o $(EXEPATH)$@
