@@ -42,8 +42,8 @@
 ;Entry = string address; string length
 %macro printdata 2
             mov     rdi, 1  ; file descriptor  <- stdout           
-            mov     rsi, %1 ; buffer to print  <- %1              
             mov     rdx, %2 ; buffer size      <- %2
+            mov     rsi, %1 ; buffer to print  <- %1              
             mov     rax, 1  ; syscall          <- sys_write    
             syscall             
             test rax, rax ; if no byte is written,
@@ -68,15 +68,18 @@ section .bss
             NUM       resd 65
             MODE1     resb 1
             MODE2     resb 1
+
 section .data
 SLASHN:     db 0ah
+
 MODE1INV:   db "Enter, how the input value is represented(b - bin, h - hex, d - dec)", 0ah
+MODE1INVLEN equ $-MODE1INV
+
 MODE2INV:   db "Enter, how to represent output value(b - bin, h - hex, d - dec)", 0ah
+MODE2INVLEN equ $-MODE2INV
+
 NUMINV:     db "Enter the number in specified numeric system", 0ah
-
-
-            
-
+NUMINVLEN   equ $-NUMINV
 
 section .text
 ;code
@@ -87,11 +90,11 @@ section .text
                                                                             
 _start:                                                                     
 
-    printdata MODE1INV, 69
+    printdata MODE1INV, MODE1INVLEN
     getchar   MODE1
     putchar   SLASHN; putchar('\n');
 
-    printdata NUMINV, 45
+    printdata NUMINV, NUMINVLEN
     getdata   NUM, 65; the 64-bit value in the binary arithmetic occupies 64 chars +
                      ; + null terminator
     putchar   SLASHN ; putchar('\n');
@@ -120,7 +123,7 @@ Mode1SwitchEnd:
 ;--------------------------------------------------
     push rax ;push numeric value
     
-    printdata MODE2INV, 64
+    printdata MODE2INV, MODE2INVLEN
     getchar   MODE2
     putchar   SLASHN ; putchar('\n');
 
